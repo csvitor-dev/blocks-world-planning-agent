@@ -5,7 +5,7 @@ class FileManager:
     @staticmethod
     def read(path: Path) -> list[str]:
         with open(path, 'r') as file:
-            return file.readlines()
+            return list(map(lambda line: line.replace('\n', ''), file.readlines()))
     
     @staticmethod
     def load():
@@ -17,5 +17,5 @@ class FileManager:
         target_path = Path(abs_path)
 
         if target_path.exists() is False:
-            raise FileExistsError()
+            raise FileExistsError
         return target_path

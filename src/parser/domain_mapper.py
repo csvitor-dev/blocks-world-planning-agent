@@ -10,4 +10,7 @@ class DomainMapper:
         separation_line =  len(raw) - 3
         actions_set, states = raw[:separation_line], raw[separation_line+1:]
 
+        if len(actions_set) % 3 != 0:
+            raise ValueError
+
         return StripsPlanning(actions_set, states[0], states[1])
