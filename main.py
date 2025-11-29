@@ -16,7 +16,7 @@ def app() -> None:
     
     instance = DomainMapper.get_instance(instance_id)
     expression = ClausalForm(instance)
-    print(expression.get_map(), expression.get_states())
+    print(expression.get_actions())
 
 if __name__ == "__main__":
     try:
