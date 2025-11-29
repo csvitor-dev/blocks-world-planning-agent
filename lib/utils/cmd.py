@@ -1,7 +1,5 @@
 import sys
-import re
-
-__UNIQUE_VALUE_CONSTRAINT = re.compile(r'^\d+-\d+$')
+from lib.constants.regex import UNIQUE_VALUE_CONSTRAINT
 
 def pluck_instance_from_cmd_args() -> str:
     args = __map_args(sys.argv[1:])
@@ -17,6 +15,6 @@ def __map_args(raw_args: list[str]) -> dict[str, str]:
     return {flag: __to_list(value) for (flag, value) in mapping}
 
 def __to_list(arg: str) -> str:
-    if __UNIQUE_VALUE_CONSTRAINT.search(arg) is not None:
+    if UNIQUE_VALUE_CONSTRAINT.search(arg) is not None:
         return arg
     raise ValueError('More than one value was provided.')

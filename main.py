@@ -8,7 +8,7 @@ Equipe:
 """
 
 from src.parser.domain_mapper import DomainMapper
-from src.utils import cmd
+from lib.utils import cmd
 
 def app() -> None:
     instance_id = cmd.pluck_instance_from_cmd_args()
