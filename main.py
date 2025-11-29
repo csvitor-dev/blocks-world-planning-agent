@@ -8,10 +8,16 @@ Equipe:
 """
 
 from src.parser.domain_mapper import DomainMapper
+from src.utils import cmd
 
 def app() -> None:
-    instance = DomainMapper.get_instance('4-0')
+    instance_id = cmd.pluck_instance_from_cmd_args()
+    
+    instance = DomainMapper.get_instance(instance_id)
     print(instance.get_states())
 
 if __name__ == "__main__":
-    app()
+    try:
+        app()
+    except Exception as e:
+        print('Errors:', e.args)
