@@ -1,40 +1,44 @@
 class ClausalForm:
-    conversao = {
-        "clear_a": 1,
-        "clear_b": 2,
-        "clear_c": 3,
-        "clear_d": 4,
-        "handempty": 5,
-        "holding_a": 6,
-        "holding_b": 7,
-        "holding_c": 8,
-        "holding_d": 9,
-        "on_a_b": 10,
-        "on_a_c": 11,
-        "on_a_d": 12,
-        "on_b_a": 13,
-        "on_b_c": 14,
-        "on_b_d": 15,
-        "on_c_a": 16,
-        "on_c_b": 17,
-        "on_c_d": 18,
-        "on_d_a": 19,
-        "on_d_b": 20,
-        "on_d_c": 21,
-        "ontable_a": 22,
-        "ontable_b": 23,
-        "ontable_c": 24,
-        "ontable_d": 25
-    }
+    def __init__(self, planning):
+        self.planning = planning
+        self.conversao = self._criar_mapa()
+        self.estado_inicial = self._cod(planning.initial_state)
+        self.estado_final = self._cod(planning.goal_state)
 
-    def encode(sentenca):
-        itens = sentenca.split(";")
-        resultado = []
-        for item in itens:
-            item = item.strip()
-            if item.startswith("~"):
-                proposicao = item[1:]
-                resultado.append(-ClausalForm.conversao[proposicao])
+    def _criar_mapa(self):
+        props = set()
+
+        for acao in self.planning.actions:
+            for p in acao.precond_pos:
+                props.add(p)
+            for p in acao.precond_neg:
+                props.add("~" + p)
+            for p in acao.effect_pos:
+                props.add(p)
+            for p in acao.effect_neg:
+                props.add("~" + p)
+
+        for p in self.planning.initial_state:
+            props.add(p)
+
+        for p in self.planning.goal_state:
+            props.add(p)
+
+        props = sorted(list(props))
+        mapa = {}
+        n = 1
+
+        for p in props:
+            if p.startswith("~"):
+                base = p[1:]
+                mapa[p] = -n
+                mapa[base] = n
             else:
-                resultado.append(ClausalForm.conversao[item])
-        return resultado
+                if p not in mapa:
+                    mapa[p] = n
+            n += 1
+
+        return mapa
+
+    def _cod(self, lista):
+        return [self.conversao[p] for p in lista]
