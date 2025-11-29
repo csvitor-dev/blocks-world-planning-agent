@@ -8,13 +8,15 @@ Equipe:
 """
 
 from src.parser.domain_mapper import DomainMapper
+from src.domain.clausal_form import ClausalForm
 from lib.utils import cmd
 
 def app() -> None:
     instance_id = cmd.pluck_instance_from_cmd_args()
     
     instance = DomainMapper.get_instance(instance_id)
-    print(instance.get_states())
+    expression = ClausalForm(instance)
+    print(expression.get_map(), expression.get_states())
 
 if __name__ == "__main__":
     try:
