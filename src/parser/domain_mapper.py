@@ -4,7 +4,7 @@ from src.parser.file_manager import FileManager
 class DomainMapper:
     @staticmethod
     def get_instance(ref: str) -> StripsPlanning:
-        file = FileManager.resolve_path('./planningsat', f'blocks-{ref}.strips')
+        file = FileManager.resolve_path('./assets/planningsat', f'blocks-{ref}.strips')
         raw = FileManager.read(file)
 
         separation_line =  len(raw) - 3
@@ -12,5 +12,4 @@ class DomainMapper:
 
         if len(actions_set) % 3 != 0:
             raise ValueError
-
         return StripsPlanning(actions_set, states[0], states[1])
