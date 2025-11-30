@@ -22,7 +22,7 @@ class BlocksWorldState:
         return hook
     
     def __hash__(self) -> int:
-        return hash(self.current)
+        return hash(tuple(self.current))
     
     def __eq__(self, other: object) -> bool:
         if isinstance(other, BlocksWorldState):
