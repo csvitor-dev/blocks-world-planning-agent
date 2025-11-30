@@ -9,6 +9,7 @@ Equipe:
 
 from src.parser.domain_mapper import DomainMapper
 from src.domain.clausal_form import ClausalForm
+from src.domain.blocks_world_state import BlocksWorldState
 from lib.utils import cmd
 
 def app() -> None:
@@ -16,7 +17,13 @@ def app() -> None:
     
     instance = DomainMapper.get_instance(instance_id)
     expression = ClausalForm(instance)
-    print(expression.get_actions())
+    initial_state = BlocksWorldState(expression.get_states()['initial'], expression.get_actions())
+    
+    print(initial_state.current)
+    print(initial_state.avaliable_actions, end="\n")
+    
+    for action, state in initial_state.successors(expression.get_actions()):
+        print(action, state.current, state.avaliable_actions)
 
 if __name__ == "__main__":
     try:
