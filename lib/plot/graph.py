@@ -1,24 +1,27 @@
 import networkx as nx
 from collections import deque
 import os
+import random
 from src.domain.blocks_world_state import BlocksWorldState
+from src.domain.planning import Planning
 
 
-def build_state_space(initial: BlocksWorldState, actions: dict[str, dict[str, list[int]]]) -> nx.DiGraph[str]:
+def build_state_space(planning: Planning) -> nx.DiGraph[str]:
     G: nx.DiGraph[str] = nx.DiGraph()
-    queue = deque([initial])
-    visited = set([initial.identifier])
+    initial_state = planning.current_state
+    queue = deque([initial_state])
+    visited = set([initial_state.identifier])
 
     while queue:
         state: BlocksWorldState = queue.popleft()
         G.add_node(state.identifier, label=str(state.current))
 
-        for action_name, next_state in state.successors(actions):
+        for next_state in state.successors(planning.actions):
             next_id = next_state.identifier
 
             if G.has_edge(state.identifier, next_id) or G.has_edge(next_id, state.identifier):
                 continue
-            G.add_edge(state.identifier, next_id, label=action_name)
+            G.add_edge(state.identifier, next_id, label=next_id)
 
             if next_id in visited:
                 continue
@@ -37,8 +40,10 @@ def plot_graph(G: nx.DiGraph[str], generate_image: bool = False) -> None:
 
     edge_labels = {(u, v): data["label"] for u, v, data in G.edges(data=True)}
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7)
-    nx.nx_pydot.write_dot(G, "./assets/graph.dot")
+    
+    seed = random.randint(100, 100000)
+    nx.nx_pydot.write_dot(G, f'./assets/output/graph-{seed}.dot')
 
     if generate_image:
         os.execv('/usr/bin/dot', ['dot', '-Tpng',
-                 './assets/graph.dot', '-o', './assets/graph.png'])
+                 f'./assets/output/graph-{seed}.dot', '-o', f'./assets/output/graph-{seed}.png'])
