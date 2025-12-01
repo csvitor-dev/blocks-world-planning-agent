@@ -1,4 +1,4 @@
-class StripsPlanning:
+class StripsNotation:
     def __init__(self, actions: list[str], initial_state: str, goal_state: str) -> None:
         self.__propositions: set[str] = set()
         self.__actions = self.__create_actions(actions)

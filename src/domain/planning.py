@@ -1,17 +1,17 @@
-from src.domain.strips_planning import StripsPlanning
+from domain.strips_notation import StripsNotation
 
-class ClausalForm:
-    def __init__(self, strips: StripsPlanning):
+class Planning:
+    def __init__(self, strips: StripsNotation):
         self.__map = self.__map_clauses(strips)
-        
+
         actions = strips.get_actions()
         self.__actions = self.__resolve_actions(actions)
-        
+
         states = strips.get_states()
         self.__initial_state = self.__resolve_propositions(states['initial'])
         self.__goal_state = self.__resolve_propositions(states['goal'])
 
-    def __map_clauses(self, strips: StripsPlanning) -> dict[str,int]:
+    def __map_clauses(self, strips: StripsNotation) -> dict[str,int]:
         action_hook: dict[str,int] = {}
         
         for proposition in strips.get_all_propositions():

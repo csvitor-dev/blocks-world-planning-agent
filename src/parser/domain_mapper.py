@@ -1,9 +1,9 @@
-from src.domain.strips_planning import StripsPlanning
+from src.domain.strips_notation import StripsNotation
 from src.parser.file_manager import FileManager
 
 class DomainMapper:
     @staticmethod
-    def get_instance(ref: str) -> StripsPlanning:
+    def get_instance(ref: str) -> StripsNotation:
         file = FileManager.resolve_path('./assets/planningsat', f'blocks-{ref}.strips')
         raw = FileManager.read(file)
 
@@ -12,4 +12,4 @@ class DomainMapper:
 
         if len(actions_set) % 3 != 0:
             raise ValueError
-        return StripsPlanning(actions_set, states[0], states[1])
+        return StripsNotation(actions_set, states[0], states[1])
