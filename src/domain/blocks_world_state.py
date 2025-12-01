@@ -1,5 +1,6 @@
 from typing import Generator
 
+
 class BlocksWorldState:
     def __init__(self, current_state: list[int], actions: dict[str, dict[str, list[int]]], name: str = 'root') -> None:
         self.current = current_state
@@ -7,7 +8,8 @@ class BlocksWorldState:
         self.identifier = name
 
     def expand(self, action_name: str, action: dict[str, list[int]], actions: dict[str, dict[str, list[int]]]) -> BlocksWorldState:
-        new_state = set(self.current).difference(set(action['pre'])).union(action['post'])
+        new_state = set(self.current).difference(
+            set(action['pre'])).union(action['post'])
         return BlocksWorldState(list(new_state), actions, action_name)
 
     def successors(self, actions: dict[str, dict[str, list[int]]]) -> Generator[tuple[str, BlocksWorldState], None, None]:
@@ -21,12 +23,11 @@ class BlocksWorldState:
             if set(conditions['pre']).issubset(set(self.current)):
                 hook[action_name] = conditions
         return hook
-    
+
     def __hash__(self) -> int:
         return hash(self.identifier)
-    
+
     def __eq__(self, other: object) -> bool:
         if isinstance(other, BlocksWorldState):
             return self.current == other.current
         return self is other
-    

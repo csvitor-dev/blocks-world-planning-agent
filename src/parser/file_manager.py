@@ -1,12 +1,13 @@
 from pathlib import Path
 from os import path
 
+
 class FileManager:
     @staticmethod
     def read(path: Path) -> list[str]:
         with open(path, 'r') as file:
             return list(map(lambda line: line.replace('\n', ''), file.readlines()))
-    
+
     @staticmethod
     def load():
         ...

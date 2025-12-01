@@ -4,11 +4,12 @@ class StripsNotation:
         self.__actions = self.__create_actions(actions)
         self.__initial_state = self.__resolve_steps_group(initial_state)
         self.__goal_state = self.__resolve_steps_group(goal_state)
-    
-    def __create_actions(self, raw_actions: list[str]) -> dict[str,dict[str,list[str]]]:
-        hook: dict[str,dict[str,list[str]]] = {}
+
+    def __create_actions(self, raw_actions: list[str]) -> dict[str, dict[str, list[str]]]:
+        hook: dict[str, dict[str, list[str]]] = {}
         for i in range(0, len(raw_actions), 3):
-            preconditions, post_conditions = self.__resolve_steps_group(raw_actions[i+1]), self.__resolve_steps_group(raw_actions[i+2])
+            preconditions, post_conditions = self.__resolve_steps_group(
+                raw_actions[i+1]), self.__resolve_steps_group(raw_actions[i+2])
             self.__add_proposition_group(preconditions + post_conditions)
 
             hook[raw_actions[i]] = {
@@ -24,7 +25,7 @@ class StripsNotation:
         for step in steps:
             self.__propositions.add(step)
 
-    def get_actions(self) -> dict[str,dict[str,list[str]]]:
+    def get_actions(self) -> dict[str, dict[str, list[str]]]:
         return self.__actions
 
     def get_states(self) -> dict[str, list[str]]:
