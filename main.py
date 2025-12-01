@@ -8,18 +8,20 @@ Equipe:
 """
 
 from lib.utils import cmd
+from lib.plot import graph
 from src.parser.domain_mapper import DomainMapper
 from src.domain.planning import Planning
-from src.domain.blocks_world_state import BlocksWorldState
+
 
 def app() -> None:
     instance_id = cmd.pluck_instance_from_cmd_args()
-    
+
     instance = DomainMapper.get_instance(instance_id)
-    expression = Planning(instance)
-    initial_state = BlocksWorldState(expression.get_states()['initial'], expression.get_actions())
-    
-    print('Initial State:', initial_state.current)
+    planning = Planning(instance)
+
+    G = graph.build_state_space(planning)
+    print(G.number_of_edges(), G.number_of_nodes())
+
 
 if __name__ == "__main__":
     try:
