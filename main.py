@@ -20,7 +20,7 @@ def app() -> None:
     planning = Planning(instance)
 
     G = graph.build_state_space(planning)
-    print(G.number_of_edges(), G.number_of_nodes())
+    print('Nodes:', G.number_of_nodes(), 'Edges:', G.number_of_edges())
 
 
 if __name__ == "__main__":

@@ -48,7 +48,7 @@ class Planning:
         return action_hook
 
     def __resolve_facts(self, target: list[str]) -> list[int]:
-        return [self.__map[fact] for fact in target]
+        return sorted([self.__map[fact] for fact in target])
 
     def __resolve_actions(self, actions: dict[str, dict[str, list[str]]]) -> dict[str, dict[str, list[int]]]:
         hook: dict[str, dict[str, list[int]]] = {}
