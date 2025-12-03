@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, Set
 import time
 import tracemalloc
 from src.support.factories.algorithm_factory import AlgorithmFactory
@@ -31,11 +31,11 @@ class Planning(PlanningContract):
         return self.__map
 
     @property
-    def actions(self) -> dict[str, dict[str, list[int]]]:
+    def actions(self) -> dict[str, dict[str, Set[int]]]:
         return self.__actions
 
     @property
-    def states(self) -> dict[str, list[int]]:
+    def states(self) -> dict[str, Set[int]]:
         return {
             'initial': self.__initial_state,
             'goal': self.__goal_state,
@@ -61,14 +61,14 @@ class Planning(PlanningContract):
 
         tracemalloc.start()
         start = time.perf_counter()
-        result, expansions = self.__planner.execute()
+        result, expansions, explorations = self.__planner.execute()
         elapsed = time.perf_counter() - start
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
-        self.__display_result(result, expansions, elapsed, current, peak)
+        self.__display_result(result, expansions, explorations, elapsed, current, peak)
 
-    def __display_result(self, result: list[str] | None, expansions: int, elapsed: float, current: int, peak: int) -> None:
+    def __display_result(self, result: list[str] | None, expansions: int, explorations: int, elapsed: float, current: int, peak: int) -> None:
         algo_name = type(
             self.__planner).__name__ if self.__planner is not None else None
 
@@ -78,6 +78,7 @@ class Planning(PlanningContract):
         print(f"Algorithm       : {algo_name}")
         print(f"Time elapsed    : {elapsed:.6f} s")
         print(f"Expanded nodes  : {expansions}")
+        print(f"Explored nodes  : {expansions}")
         print(
             f"Memory usage    : current={current / 1024:.2f} KB; peak={peak / 1024:.2f} KB")
         print("-" * 60)
@@ -102,15 +103,14 @@ class Planning(PlanningContract):
                         fact[1:], len(action_hook) + 1)
         return action_hook
 
-    def __resolve_facts(self, target: list[str]) -> list[int]:
-        return sorted([self.__map[fact] for fact in target])
+    def __resolve_facts(self, target: list[str]) -> Set[int]:
+        return {self.__map[fact] for fact in target}
 
-    def __resolve_actions(self, actions: dict[str, dict[str, list[str]]]) -> dict[str, dict[str, list[int]]]:
-        hook: dict[str, dict[str, list[int]]] = {}
-
-        for action, conditions in actions.items():
-            hook[action] = {
+    def __resolve_actions(self, actions: dict[str, dict[str, list[str]]]) -> dict[str, dict[str, Set[int]]]:
+        return {
+            action_name: {
                 'pre': self.__resolve_facts(conditions['pre']),
                 'post': self.__resolve_facts(conditions['post']),
             }
-        return hook
+            for action_name, conditions in actions.items()
+        }
