@@ -2,7 +2,7 @@ from typing import Generator, Set
 
 
 class BlocksWorldState:
-    def __init__(self, current_state: list[int], actions: dict[str, dict[str, list[int]]], name: str = 'root', parent: 'BlocksWorldState' = None) -> None:
+    def __init__(self, current_state: list[int], actions: dict[str, dict[str, list[int]]], name: str = 'root', parent: BlocksWorldState | None = None) -> None:
         if self.__is_valid_state(current_state) is False:
             raise ValueError('The current state is not valid.')
 
@@ -17,7 +17,7 @@ class BlocksWorldState:
             new_state = self.__expand(name, action, actions)
             yield new_state
 
-    def __expand(self, action_name: str, action: dict[str, list[int]], actions: dict[str, dict[str, list[int]]]) -> 'BlocksWorldState':
+    def __expand(self, action_name: str, action: dict[str, list[int]], actions: dict[str, dict[str, list[int]]]) -> BlocksWorldState:
         transition_state = set(self.current) - set(action['pre'])
         new_state = self.__resolve_consistent_state(
             transition_state, set(action['post']))

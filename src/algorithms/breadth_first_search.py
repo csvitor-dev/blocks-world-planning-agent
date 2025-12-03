@@ -2,18 +2,19 @@ from src.domain.contracts.local_search_algorithm import LocalSearchAlgorithm
 from src.domain.contracts.planning_contract import PlanningContract
 from collections import deque
 from src.domain.blocks_world_state import BlocksWorldState
+from typing import Set
 
 
 class BFS(LocalSearchAlgorithm):
     def __init__(self, planning: PlanningContract) -> None:
         super().__init__(planning)
-        self.__explored = set()
-        self.__frontier = deque()
-        self.__goal = set(planning.states.get('goal'))
+        self.__explored: Set[str] = set()
+        self.__frontier: deque[BlocksWorldState]  = deque()
+        self.__goal: Set[int] = set(planning.states['goal'])
         self.__frontier.append(self._planning.current_state)
         self.__num_generated_nodes = 0
 
-    def execute(self) -> list[str] | None:
+    def execute(self) -> tuple[list[str] | None, int]:
         while len(self.__frontier):
             state: BlocksWorldState = self.__frontier.popleft()
             

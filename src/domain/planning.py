@@ -45,7 +45,7 @@ class Planning(PlanningContract):
         return self.__state_space.successors(self.__actions)
 
     def solution(self, goal_state: BlocksWorldState) -> list[str]:
-        solution_path = []
+        solution_path: list[str] = []
 
         while goal_state.parent is not None:
             solution_path.insert(0, goal_state.identifier)
@@ -55,39 +55,37 @@ class Planning(PlanningContract):
     def set_algoritm(self, algorithm_key: str) -> None:
         self.__planner = AlgorithmFactory.make(algorithm_key, self)
 
-    def execute(self) -> list[str] | None:
+    def execute(self) -> None:
         if self.__planner is None:
             raise AssertionError('The algorithm is not set')
 
         tracemalloc.start()
         start = time.perf_counter()
-        result = self.__planner.execute()
+        result, expansions = self.__planner.execute()
         elapsed = time.perf_counter() - start
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
-        self.__display_result(result, elapsed, current, peak)
+        self.__display_result(result, expansions, elapsed, current, peak)
 
-        return result
-
-    def __display_result(self, result, elapsed: float, current: int, peak: int) -> None:
-        solution = result[0] if result and len(
-            result) > 0 and result[0] is not None else None
-        algo_name = type(self.__planner).__name__ if self.__planner is not None else 'None'
+    def __display_result(self, result: list[str] | None, expansions: int, elapsed: float, current: int, peak: int) -> None:
+        algo_name = type(
+            self.__planner).__name__ if self.__planner is not None else None
 
         print("=" * 60)
         print("Execution summary".center(60))
         print("=" * 60)
-        print(f"Algorithm    : {algo_name}")
-        print(f"Time elapsed : {elapsed:.6f} s")
+        print(f"Algorithm       : {algo_name}")
+        print(f"Time elapsed    : {elapsed:.6f} s")
+        print(f"Expanded nodes  : {expansions}")
         print(
-            f"Memory usage : current={current / 1024:.2f} KB; peak={peak / 1024:.2f} KB")
+            f"Memory usage    : current={current / 1024:.2f} KB; peak={peak / 1024:.2f} KB")
         print("-" * 60)
 
-        if solution:
+        if result:
             print(
-                f"Solution ({len(solution)} step{'s' if len(solution) != 1 else ''}):")
-            for i, step in enumerate(solution, start=1):
+                f"Solution ({len(result)} step{'s' if len(result) != 1 else ''}):")
+            for i, step in enumerate(result, start=1):
                 print(f"  {i:2d}. {step}")
         else:
             print("No solution found")
