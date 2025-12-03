@@ -1,9 +1,12 @@
 from typing import Generator
-from src.domain.strips_notation import StripsNotation
+from src.support.factories.algorithm_factory import AlgorithmFactory
+from src.domain.contracts.local_search_algorithm import LocalSearchAlgorithm
+from src.domain.contracts.planning_contract import PlanningContract
 from src.domain.blocks_world_state import BlocksWorldState
+from src.domain.strips_notation import StripsNotation
 
 
-class Planning:
+class Planning(PlanningContract):
     def __init__(self, strips: StripsNotation):
         self.__map = self.__map_clauses(strips)
         self.__actions = self.__resolve_actions(strips.actions)
@@ -14,6 +17,8 @@ class Planning:
 
         self.__state_space = BlocksWorldState(
             self.__initial_state, self.__actions)
+
+        self.__planner: LocalSearchAlgorithm | None = None
 
     @property
     def current_state(self) -> BlocksWorldState:
@@ -36,6 +41,14 @@ class Planning:
 
     def successors(self) -> Generator[BlocksWorldState, None, None]:
         return self.__state_space.successors(self.__actions)
+
+    def set_algoritm(self, algorithm_key: str) -> None:
+        self.__planner = AlgorithmFactory.make(algorithm_key, self)
+
+    def execute(self) -> None:
+        if self.__planner is None:
+            raise AssertionError('The algorithm is not set')
+        self.__planner.execute()
 
     def __map_clauses(self, strips: StripsNotation) -> dict[str, int]:
         action_hook: dict[str, int] = {}
