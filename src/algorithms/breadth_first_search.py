@@ -9,25 +9,24 @@ class BFS(LocalSearchAlgorithm):
     def __init__(self, planning: PlanningContract) -> None:
         super().__init__(planning)
         self.__explored: Set[str] = set()
-        self.__frontier: deque[BlocksWorldState]  = deque()
+        self.__frontier: deque[BlocksWorldState] = deque()
         self.__goal: Set[int] = set(planning.states['goal'])
         self.__frontier.append(self._planning.current_state)
         self.__num_generated_nodes = 0
 
-    def execute(self) -> tuple[list[str] | None, int]:
+    def execute(self) -> tuple[list[str] | None, int, int]:
         while len(self.__frontier):
             state: BlocksWorldState = self.__frontier.popleft()
-            
-            if state.key in self.__explored:
-                continue
-            self.__explored.add(state.key)            
 
             if self.__goal.issubset(set(state.current)):
-                return self._planning.solution(state), self.__num_generated_nodes
+                return self._planning.solution(state), self.__num_generated_nodes, len(self.__explored)
+                                                        
+            if state.key in self.__explored:
+                continue
+            self.__explored.add(state.key)
 
             for successor in state.successors(self._planning.actions):
                 self.__num_generated_nodes += 1
                 if successor.key not in self.__explored:
                     self.__frontier.append(successor)
-                    
-        return None, self.__num_generated_nodes
+        return None, self.__num_generated_nodes, len(self.__explored)
