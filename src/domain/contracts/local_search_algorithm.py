@@ -6,5 +6,5 @@ class LocalSearchAlgorithm(ABC):
         self._planning = planning
 
     @abstractmethod
-    def execute(self) -> None:
+    def execute(self) -> list[str] | None:
         ...

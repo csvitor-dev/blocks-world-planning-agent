@@ -41,14 +41,22 @@ class Planning(PlanningContract):
 
     def successors(self) -> Generator[BlocksWorldState, None, None]:
         return self.__state_space.successors(self.__actions)
+    
+    def solution(self, goal_state: BlocksWorldState) -> list[str]:
+        solution_path = []
+
+        while goal_state.parent is not None:
+            solution_path.insert(0, goal_state.identifier)
+            goal_state = goal_state.parent
+        return solution_path
 
     def set_algoritm(self, algorithm_key: str) -> None:
         self.__planner = AlgorithmFactory.make(algorithm_key, self)
 
-    def execute(self) -> None:
+    def execute(self) -> list[str] | None:
         if self.__planner is None:
             raise AssertionError('The algorithm is not set')
-        self.__planner.execute()
+        return self.__planner.execute()
 
     def __map_clauses(self, strips: StripsNotation) -> dict[str, int]:
         action_hook: dict[str, int] = {}
