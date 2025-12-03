@@ -19,7 +19,7 @@ def app() -> None:
     planning = Planning(instance)
 
     planning.set_algoritm('BFS')
-    print(planning.execute())
+    planning.execute()
 
 
 if __name__ == "__main__":

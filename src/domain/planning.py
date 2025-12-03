@@ -1,4 +1,6 @@
 from typing import Generator
+import time
+import tracemalloc
 from src.support.factories.algorithm_factory import AlgorithmFactory
 from src.domain.contracts.local_search_algorithm import LocalSearchAlgorithm
 from src.domain.contracts.planning_contract import PlanningContract
@@ -41,7 +43,7 @@ class Planning(PlanningContract):
 
     def successors(self) -> Generator[BlocksWorldState, None, None]:
         return self.__state_space.successors(self.__actions)
-    
+
     def solution(self, goal_state: BlocksWorldState) -> list[str]:
         solution_path = []
 
@@ -56,7 +58,41 @@ class Planning(PlanningContract):
     def execute(self) -> list[str] | None:
         if self.__planner is None:
             raise AssertionError('The algorithm is not set')
-        return self.__planner.execute()
+
+        tracemalloc.start()
+        start = time.perf_counter()
+        result = self.__planner.execute()
+        elapsed = time.perf_counter() - start
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        self.__display_result(result, elapsed, current, peak)
+
+        return result
+
+    def __display_result(self, result, elapsed: float, current: int, peak: int) -> None:
+        solution = result[0] if result and len(
+            result) > 0 and result[0] is not None else None
+        algo_name = type(self.__planner).__name__ if self.__planner is not None else 'None'
+
+        print("=" * 60)
+        print("Execution summary".center(60))
+        print("=" * 60)
+        print(f"Algorithm    : {algo_name}")
+        print(f"Time elapsed : {elapsed:.6f} s")
+        print(
+            f"Memory usage : current={current / 1024:.2f} KB; peak={peak / 1024:.2f} KB")
+        print("-" * 60)
+
+        if solution:
+            print(
+                f"Solution ({len(solution)} step{'s' if len(solution) != 1 else ''}):")
+            for i, step in enumerate(solution, start=1):
+                print(f"  {i:2d}. {step}")
+        else:
+            print("No solution found")
+
+        print("=" * 60)
 
     def __map_clauses(self, strips: StripsNotation) -> dict[str, int]:
         action_hook: dict[str, int] = {}

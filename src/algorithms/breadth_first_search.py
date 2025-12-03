@@ -22,7 +22,6 @@ class BFS(LocalSearchAlgorithm):
             self.__explored.add(state.key)            
 
             if self.__goal.issubset(set(state.current)):
-                print('Goal found!')
                 return self._planning.solution(state), self.__num_generated_nodes
 
             for successor in state.successors(self._planning.actions):
