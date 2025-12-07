@@ -1,13 +1,43 @@
 from collections import deque
-from typing import Set
+from typing import Set, Callable, Any
 from src.domain.blocks_world_state import BlocksWorldState
 from src.domain.contracts.planning_contract import PlanningContract
 
 
+def h0(current_state: BlocksWorldState, goal: Set[int]):
+    return sum(1 if fact not in current_state.current else -1 for fact in goal)
+
+
+def h1(current_state: BlocksWorldState, goal: Set[int]) -> int:
+    return len(current_state.current & goal)
+
+
+def h2(current_state: BlocksWorldState, goal: Set[int]) -> int:  # GBFS
+    score = 0
+
+    for fact in current_state.current:
+        if current_state.parent is not None and fact not in current_state.parent.current and fact in goal:
+            score += 2
+        elif fact in goal:
+            score += 1
+        elif current_state.parent is not None and fact in current_state.parent.current and fact not in goal:
+            score -= 2
+        elif fact not in goal:
+            score -= 1
+    return score
+
+
 class GoalRelativeDistance:
-    def __init__(self, planning: PlanningContract, data_structure: deque[BlocksWorldState]) -> None:
+    def __init__(
+        self,
+        planning: PlanningContract,
+        data_structure: deque[BlocksWorldState],
+        heuristic_cost: Callable['...', Any] = h0,
+    ) -> None:
         self.__planning = planning
-        self.__priority_queue_cost_based = self.__prepare_priority_queue(data_structure)
+        self.__priority_queue_cost_based = self.__prepare_priority_queue(
+            data_structure)
+        self.h = heuristic_cost
 
     def is_avaliable(self) -> bool:
         return len(self.__priority_queue_cost_based) != 0
@@ -16,7 +46,7 @@ class GoalRelativeDistance:
         return self.__priority_queue_cost_based.popleft()[1]
 
     def evaluate_cost(self, state: BlocksWorldState) -> None:
-        cost = state.g + h0(state, self.__planning.states['goal'])
+        cost = state.g + self.h(state, self.__planning.states['goal'])
         self.__push(cost, state)
 
     def __push(self, cost: int, state: BlocksWorldState) -> None:
@@ -30,26 +60,3 @@ class GoalRelativeDistance:
         new_structure: deque[tuple[int, BlocksWorldState]] = deque()
         new_structure.append((0, data_structure[0]))
         return new_structure
-
-
-def h0(current_state: BlocksWorldState, goal: Set[int]):
-    return sum(1 for fact in goal if fact not in current_state.current)
-
-
-def h1(current_state: BlocksWorldState, goal: Set[int]) -> int:
-    return len(current_state.current & goal)
-
-
-def h2(current_state: BlocksWorldState, goal: Set[int]) -> int: # GBFS
-    score = 0
-
-    for fact in current_state.current:
-        if current_state.parent is not None and fact not in current_state.parent.current and fact in goal:
-            score += 2
-        elif fact in goal:
-            score += 1
-        elif current_state.parent is not None and fact in current_state.parent.current and fact not in goal:
-            score -= 2
-        elif fact not in goal:
-            score -= 1
-    return score
