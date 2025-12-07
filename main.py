@@ -18,7 +18,7 @@ def app() -> None:
     instance = DomainMapper.get_instance(instance_id)
     planning = Planning(instance)
 
-    planning.set_algoritm('BFS')
+    planning.set_algoritm('A*')
     planning.execute()
 
 

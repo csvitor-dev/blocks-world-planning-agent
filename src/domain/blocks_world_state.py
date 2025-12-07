@@ -2,7 +2,14 @@ from typing import Generator, Set
 
 
 class BlocksWorldState:
-    def __init__(self, current_state: Set[int], actions: dict[str, dict[str, Set[int]]], name: str = 'root', parent: BlocksWorldState | None = None) -> None:
+    def __init__(
+        self,
+        current_state: Set[int],
+        actions: dict[str, dict[str, Set[int]]],
+        name: str = 'root',
+        parent: BlocksWorldState | None = None,
+        real_cost: int = 0,
+    ) -> None:
         if self.__is_valid_state(current_state) is False:
             raise ValueError('The current state is not valid.')
 
@@ -11,6 +18,7 @@ class BlocksWorldState:
         self.avaliable_actions = self.__filter_avaliable_actions(actions)
         self.identifier = name
         self.parent = parent
+        self.g = real_cost
 
     def successors(self, actions: dict[str, dict[str, Set[int]]]) -> Generator['BlocksWorldState', None, None]:
         for name, action in self.avaliable_actions.items():
@@ -22,7 +30,7 @@ class BlocksWorldState:
         new_state = self.__resolve_consistent_state(
             transition_state, action['post'])
 
-        return BlocksWorldState(new_state, actions, action_name, parent=self)
+        return BlocksWorldState(new_state, actions, action_name, parent=self, real_cost=self.g + 1)
 
     def __filter_avaliable_actions(self, actions: dict[str, dict[str, Set[int]]]) -> dict[str, dict[str, Set[int]]]:
         return {
