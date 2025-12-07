@@ -7,45 +7,40 @@ from src.domain.contracts.planning_contract import PlanningContract
 class GoalRelativeDistance:
     def __init__(self, planning: PlanningContract, data_structure: deque[BlocksWorldState]) -> None:
         self.__planning = planning
-        self.__priority_queue = self.__prepare_priority_queue(data_structure)
+        self.__priority_queue_cost_based = self.__prepare_priority_queue(data_structure)
 
     def is_avaliable(self) -> bool:
-        return len(self.__priority_queue) != 0
+        return len(self.__priority_queue_cost_based) != 0
 
     def pick(self) -> BlocksWorldState:
-        return self.__priority_queue.popleft()[1]
+        return self.__priority_queue_cost_based.popleft()[1]
 
     def evaluate_cost(self, state: BlocksWorldState) -> None:
-        priority1 = state.g + h0(state, self.__planning.states['goal'])
-        self.__push(priority1, state)
+        cost = state.g + h0(state, self.__planning.states['goal'])
+        self.__push(cost, state)
 
-    def __push(self, priority: int, state: BlocksWorldState) -> None:
-        if not self.is_avaliable():
-            self.__priority_queue.append((priority, state))
-            return
-
-        for index in range(len(self.__priority_queue)):
-            if priority >= self.__priority_queue[index][0]:
-                self.__priority_queue.insert(index, (priority, state))
+    def __push(self, cost: int, state: BlocksWorldState) -> None:
+        for index in range(len(self.__priority_queue_cost_based)):
+            if cost < self.__priority_queue_cost_based[index][0]:
+                self.__priority_queue_cost_based.insert(index, (cost, state))
                 return
+        self.__priority_queue_cost_based.append((cost, state))
 
     def __prepare_priority_queue(self, data_structure: deque[BlocksWorldState]) -> deque[tuple[int, BlocksWorldState]]:
-        if len(data_structure) > 1:
-            raise ValueError('Data structure invalid set')
         new_structure: deque[tuple[int, BlocksWorldState]] = deque()
         new_structure.append((0, data_structure[0]))
         return new_structure
 
 
-def h0(current: BlocksWorldState, goal: Set[int]):
-    return sum(1 for fact in goal if fact not in current.current)
+def h0(current_state: BlocksWorldState, goal: Set[int]):
+    return sum(1 for fact in goal if fact not in current_state.current)
 
 
 def h1(current_state: BlocksWorldState, goal: Set[int]) -> int:
     return len(current_state.current & goal)
 
 
-def h3(current_state: BlocksWorldState, goal: Set[int]) -> int:
+def h2(current_state: BlocksWorldState, goal: Set[int]) -> int: # GBFS
     score = 0
 
     for fact in current_state.current:
