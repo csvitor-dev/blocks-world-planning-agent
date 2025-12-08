@@ -1,32 +1,25 @@
 from src.domain.contracts.local_search_algorithm import LocalSearchAlgorithm
 from src.domain.contracts.planning_contract import PlanningContract
-from collections import deque
 from src.domain.blocks_world_state import BlocksWorldState
-from typing import Set
 
 
 class BFS(LocalSearchAlgorithm):
     def __init__(self, planning: PlanningContract) -> None:
         super().__init__(planning)
-        self.__explored: Set[str] = set()
-        self.__frontier: deque[BlocksWorldState] = deque()
-        self.__goal: Set[int] = set(planning.states['goal'])
-        self.__frontier.append(self._planning.current_state)
-        self.__num_generated_nodes = 0
 
     def execute(self) -> tuple[list[str] | None, int, int]:
-        while len(self.__frontier):
-            state: BlocksWorldState = self.__frontier.popleft()
+        while self._frontier:
+            state: BlocksWorldState = self._frontier.popleft()
 
-            if self.__goal.issubset(set(state.current)):
-                return self._planning.solution(state), self.__num_generated_nodes, len(self.__explored)
-                                                        
-            if state.key in self.__explored:
+            if self.is_goal_state(state):
+                return self._planning.solution(state), self._num_generated_nodes, len(self._explored)
+
+            if state.key in self._explored:
                 continue
-            self.__explored.add(state.key)
+            self._explored.add(state.key)
 
             for successor in state.successors(self._planning.actions):
-                self.__num_generated_nodes += 1
-                if successor.key not in self.__explored:
-                    self.__frontier.append(successor)
-        return None, self.__num_generated_nodes, len(self.__explored)
+                self._num_generated_nodes += 1
+                if successor.key not in self._explored:
+                    self._frontier.append(successor)
+        return None, self._num_generated_nodes, len(self._explored)
