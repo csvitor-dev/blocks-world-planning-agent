@@ -1,41 +1,74 @@
+import numpy as np
 from typing import Generator, Set
 
 
 class BlocksWorldState:
-    def __init__(self, current_state: Set[int], actions: dict[str, dict[str, Set[int]]], name: str = 'root', parent: BlocksWorldState | None = None) -> None:
-        if self.__is_valid_state(current_state) is False:
-            raise ValueError('The current state is not valid.')
+    def __init__(self, current_state: Set[int],
+                 actions: dict[str, dict[str, Set[int]]],
+                 name: str = 'root',
+                 parent: 'BlocksWorldState | None' = None) -> None:
 
-        self.current = set(current_state)
-        self.key = str(sorted(self.current))
-        self.avaliable_actions = self.__filter_avaliable_actions(actions)
+        self.n_props = max(abs(x) for x in current_state) + 1
+        self.state_vec = np.zeros(self.n_props, dtype=np.bool_)
+        for fact in current_state:
+            if fact > 0:
+                self.state_vec[fact] = True   
+
+        self.key = self.state_vec.tobytes()
+        self.actions_masks = self.__convert_actions(actions)
+
         self.identifier = name
         self.parent = parent
 
-    def successors(self, actions: dict[str, dict[str, Set[int]]]) -> Generator['BlocksWorldState', None, None]:
-        for name, action in self.avaliable_actions.items():
-            new_state = self.__expand(name, action, actions)
-            yield new_state
+    def successors(self, actions: dict[str, dict[str, Set[int]]]) \
+            -> Generator['BlocksWorldState', None, None]:
 
-    def __expand(self, action_name: str, action: dict[str, Set[int]], actions: dict[str, dict[str, Set[int]]]) -> BlocksWorldState:
-        transition_state = self.current - action['pre']
-        new_state = self.__resolve_consistent_state(
-            transition_state, action['post'])
+        for name, masks in self.actions_masks.items():
+            pre_mask, add_mask, del_mask = masks
+            if np.all(self.state_vec[pre_mask]):
+                yield self.__expand(name, add_mask, del_mask, actions)
 
-        return BlocksWorldState(new_state, actions, action_name, parent=self)
+    def __expand(self, action_name: str,
+                 add_mask: np.ndarray,
+                 del_mask: np.ndarray,
+                 actions: dict[str, dict[str, Set[int]]]) -> 'BlocksWorldState':
 
-    def __filter_avaliable_actions(self, actions: dict[str, dict[str, Set[int]]]) -> dict[str, dict[str, Set[int]]]:
-        return {
-            name: condition for name, condition in actions.items()
-            if condition['pre'].issubset(self.current)
-        }
+        new_vec = self.state_vec.copy()
+        new_vec[del_mask] = False
+        new_vec[add_mask] = True
+        new_state_set = {i for i in range(len(new_vec)) if new_vec[i]}
 
-    def __resolve_consistent_state(self, transition_state: Set[int], post_state: Set[int]) -> Set[int]:
-        only_positive_facts = {fact for fact in post_state if fact > 0}
-        return transition_state.union(only_positive_facts)
+        return BlocksWorldState(new_state_set, actions,
+                                action_name, parent=self)
 
-    def __is_valid_state(self, state: Set[int]) -> bool:
-        return len(state) == len({abs(fact) for fact in state})
+    def __convert_actions(self, actions: dict[str, dict[str, Set[int]]]):
+
+        converted = {}
+
+        for name, cond in actions.items():
+
+            pre = cond['pre']
+            post = cond['post']
+
+            max_index = self.n_props
+
+            pre_mask = np.zeros(max_index, dtype=np.bool_)
+            add_mask = np.zeros(max_index, dtype=np.bool_)
+            del_mask = np.zeros(max_index, dtype=np.bool_)
+
+            for p in pre:
+                if p > 0:
+                    pre_mask[p] = True
+
+            for p in post:
+                if p > 0:
+                    add_mask[p] = True
+                else:
+                    del_mask[abs(p)] = True
+
+            converted[name] = (pre_mask, add_mask, del_mask)
+
+        return converted
 
     def __hash__(self) -> int:
         return hash(self.key)
@@ -44,4 +77,5 @@ class BlocksWorldState:
         return isinstance(other, BlocksWorldState) and self.key == other.key
 
     def __repr__(self) -> str:
-        return f'State({self.current})'
+        true_indices = [i for i in range(len(self.state_vec)) if self.state_vec[i]]
+        return f"State({true_indices})"
