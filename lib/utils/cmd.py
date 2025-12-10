@@ -5,6 +5,9 @@ from lib.constants.regex import UNIQUE_VALUE_CONSTRAINT
 
 def pluck_flags_from_cmd_args(search_for: list[str]) -> dict[str, Any]:
     args = __map_args(sys.argv[1:])
+    
+    if len(args) == 0:
+        raise ValueError('The flags need to be provided.')
     return {target: args[target] for target in search_for if target in args}
 
 
