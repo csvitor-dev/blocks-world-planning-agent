@@ -11,14 +11,14 @@ class AStar(LocalSearchAlgorithm):
     def execute(self) -> tuple[list[str] | None, int, int]:
         while self.__heuristic.is_avaliable():
             state = self.__heuristic.pick()
-            
+
             if self.is_goal_state(state):
                 return self._planning.solution(state), self._num_generated_nodes, len(self._explored)
-            
+
             if state.key in self._explored:
                 continue
             self._explored.add(state.key)
-            
+
             for successor in state.successors(self._planning.actions):
                 self._num_generated_nodes += 1
                 if successor.key not in self._explored:

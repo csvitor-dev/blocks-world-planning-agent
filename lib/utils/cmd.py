@@ -1,25 +1,23 @@
 import sys
+from typing import Any
 from lib.constants.regex import UNIQUE_VALUE_CONSTRAINT
 
 
-def pluck_instance_from_cmd_args() -> str:
+def pluck_flags_from_cmd_args(search_for: list[str]) -> dict[str, Any]:
     args = __map_args(sys.argv[1:])
-
-    if len(args.keys()) > 1:
-        raise NotImplementedError('Resources not supported.')
-    return args.get('instance', '4-0')
+    return {target: args[target] for target in search_for if target in args}
 
 
-def __map_args(raw_args: list[str]) -> dict[str, str]:
+def __map_args(raw_args: list[str]) -> dict[str, Any]:
     filtering = filter(lambda arg: arg.isdigit()
                        is False and '=' in arg, raw_args)
     mapping = list(map(lambda arg: arg.replace(
         '--', '').split('='), filtering))
 
-    return {flag: __to_list(value) for (flag, value) in mapping}
+    return {flag: value if flag != 'instance' else __to_list(value) for (flag, value) in mapping}
 
 
-def __to_list(arg: str) -> str:
+def __to_list(arg: str) -> list[str]:
     if UNIQUE_VALUE_CONSTRAINT.search(arg) is not None:
-        return arg
-    raise ValueError('More than one value was provided.')
+        return [arg]
+    return arg[1:len(arg)-1].split(',')
