@@ -52,7 +52,7 @@ class Planning(PlanningContract):
             goal_state = goal_state.parent
         return solution_path
 
-    def set_algoritm(self, algorithm_key: str) -> None:
+    def set_algorithm(self, algorithm_key: str) -> None:
         self.__planner = AlgorithmFactory.make(algorithm_key, self)
 
     def execute(self) -> None:

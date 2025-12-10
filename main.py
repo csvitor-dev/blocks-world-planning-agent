@@ -7,19 +7,29 @@ Equipe:
     - Vitor Costa de Sousa (536678) [ES]
 """
 
+import time
 from lib.utils import cmd
 from src.parser.domain_mapper import DomainMapper
 from src.domain.planning import Planning
 
 
-def app() -> None:
-    instance_id = cmd.pluck_instance_from_cmd_args()
-
-    instance = DomainMapper.get_instance(instance_id)
+def execute(id: str, alg: str) -> None:
+    instance = DomainMapper.get_instance(id)
     planning = Planning(instance)
 
-    planning.set_algoritm('A*')
+    planning.set_algorithm(alg)
     planning.execute()
+
+
+def app() -> None:
+    flags = cmd.pluck_flags_from_cmd_args(search_for=['instance', 'algorithm'])
+
+    if len(flags['instance']) == 1:
+        execute(flags['instance'][0], flags['algorithm'])
+        return
+    for instance_id in flags['instance']:
+        execute(instance_id, flags['algorithm'])
+        time.sleep(5)
 
 
 if __name__ == "__main__":
