@@ -1,6 +1,7 @@
 from typing import Protocol, Generator, Set
 from src.domain.blocks_world_state import BlocksWorldState
 
+
 class PlanningContract(Protocol):
     @property
     def current_state(self) -> BlocksWorldState: ...
@@ -10,6 +11,8 @@ class PlanningContract(Protocol):
 
     @property
     def actions(self) -> dict[str, dict[str, Set[int]]]: ...
+
+    def remap(self, state: Set[int]) -> Set[str]: ...
 
     def successors(self) -> Generator[BlocksWorldState, None, None]: ...
 
