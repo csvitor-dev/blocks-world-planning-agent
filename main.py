@@ -6,7 +6,7 @@ Equipe:
     - Francisco Rodrigo de Santiago Pinheiro (554394) [ES]
     - Vitor Costa de Sousa (536678) [ES]
 """
-
+from __future__ import annotations
 import time
 from lib.utils import cmd
 from src.parser.domain_mapper import DomainMapper
