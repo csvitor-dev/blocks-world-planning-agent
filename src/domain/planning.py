@@ -11,12 +11,13 @@ from src.domain.strips_notation import StripsNotation
 
 class Planning(PlanningContract):
     def __init__(self, strips: StripsNotation):
+        self.__instance = strips.instance_ref
         self.__map = self.__map_clauses(strips)
+        self.__inverve_map = {self.__map[key]: key for key in self.__map}
         self.__actions = self.__resolve_actions(strips.actions)
 
-        states = strips.states
-        self.__initial_state = self.__resolve_facts(states['initial'])
-        self.__goal_state = self.__resolve_facts(states['goal'])
+        self.__initial_state = self.__resolve_facts(strips.states['initial'])
+        self.__goal_state = self.__infers_goal(strips)
 
         self.__state_space = BlocksWorldState(
             self.__initial_state, self.__actions)
@@ -41,6 +42,9 @@ class Planning(PlanningContract):
             'initial': self.__initial_state,
             'goal': self.__goal_state,
         }
+
+    def remap(self, state: Set[int]) -> Set[str]:
+        return {self.__inverve_map[fact] for fact in state}
 
     def successors(self) -> Generator[BlocksWorldState, None, None]:
         return self.__state_space.successors(self.__actions)
@@ -79,6 +83,7 @@ class Planning(PlanningContract):
         print("Execution summary".center(60))
         print("=" * 60)
         print(f"Algorithm         : {algo_name}")
+        print(f"Instance          : {self.__instance}")
         print(f"Time elapsed      : {elapsed:.6f} s")
         print(f"Expanded nodes    : {expansions}")
         print(f"Explored nodes    : {explorations}")
@@ -118,3 +123,30 @@ class Planning(PlanningContract):
             }
             for action_name, conditions in actions.items()
         }
+
+    def __infers_goal(self, strips: StripsNotation) -> Set[int]:
+        goal = strips.states['goal']
+        goal_facts_disposition = list(
+            map(lambda fact: fact.split('_')[0], goal))
+        state_builder: Set[str] = set(goal)
+
+        if 'holding' not in goal_facts_disposition:
+            state_builder.add('handempty')
+
+        for atom in strips.atoms:
+            clear_exists = True
+            ontable_exists = True
+            rest = strips.atoms.copy()
+            rest.remove(atom)
+
+            for other in rest:
+                if f'on_{other}_{atom}' in goal:
+                    clear_exists = False
+                elif f'on_{atom}_{other}' in goal:
+                    ontable_exists = False
+            if clear_exists:
+                state_builder.add(f'clear_{atom}')
+            if ontable_exists:
+                state_builder.add(f'ontable_{atom}')
+
+        return self.__resolve_facts(list(state_builder))
