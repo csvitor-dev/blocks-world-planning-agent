@@ -32,10 +32,10 @@ It is now possible to run the application with:
 
 ```bash
 # to run only instance 4-0
-python ./main.py --instance=4-0 --algoritm=BFS
+python ./main.py --instance=4-0 --algorithm=BFS
 
 # or run multiple instances with a single algorithm
-python ./main.py --instance=[4-0,7-0,9-0] --algoritm=A*
+python ./main.py --instance=[4-0,7-0,9-0] --algorithm=A*
 ```
 
 > [!IMPORTANT]\
