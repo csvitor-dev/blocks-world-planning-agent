@@ -78,13 +78,13 @@ class Planning(PlanningContract):
         print("=" * 60)
         print("Execution summary".center(60))
         print("=" * 60)
-        print(f"Algorithm       : {algo_name}")
-        print(f"Time elapsed    : {elapsed:.6f} s")
-        print(f"Expanded nodes  : {expansions}")
-        print(f"Explored nodes  : {explorations}")
+        print(f"Algorithm         : {algo_name}")
+        print(f"Time elapsed      : {elapsed:.6f} s")
+        print(f"Expanded nodes    : {expansions}")
+        print(f"Explored nodes    : {explorations}")
         print(f"Total memory cost : {(explorations * sizeof / 1024):.2f} KB")
         print(
-            f"Memory usage    : current={current / 1024:.2f} KB; peak={peak / 1024:.2f} KB")
+            f"Memory usage      : current={current / 1024:.2f} KB; peak={peak / 1024:.2f} KB")
         print("-" * 60)
 
         if result:
