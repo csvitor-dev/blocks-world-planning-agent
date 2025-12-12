@@ -9,9 +9,8 @@ class LocalSearchAlgorithm(ABC):
     def __init__(self, planning: PlanningContract) -> None:
         self._planning = planning
         self._explored: Set[str] = set()
-        self._frontier: deque[BlocksWorldState] = deque()
-        self._goal: Set[int] = set(planning.states['goal'])
-        self._frontier.append(self._planning.current_state)
+        self._frontier: deque[BlocksWorldState] = deque([self._planning.current_state])
+        self._goal: Set[int] = planning.states['goal']
         self._num_generated_nodes = 0
 
     @abstractmethod
