@@ -1,6 +1,7 @@
 from typing import Generator, Set
 import time
 import tracemalloc
+import sys
 from src.support.factories.algorithm_factory import AlgorithmFactory
 from src.domain.contracts.local_search_algorithm import LocalSearchAlgorithm
 from src.domain.contracts.planning_contract import PlanningContract
@@ -66,11 +67,13 @@ class Planning(PlanningContract):
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
-        self.__display_result(result, expansions, explorations, elapsed, current, peak)
+        self.__display_result(result, expansions,
+                              explorations, elapsed, current, peak)
 
     def __display_result(self, result: list[str] | None, expansions: int, explorations: int, elapsed: float, current: int, peak: int) -> None:
         algo_name = type(
             self.__planner).__name__ if self.__planner is not None else None
+        sizeof = sys.getsizeof(self.current_state)
 
         print("=" * 60)
         print("Execution summary".center(60))
@@ -78,7 +81,8 @@ class Planning(PlanningContract):
         print(f"Algorithm       : {algo_name}")
         print(f"Time elapsed    : {elapsed:.6f} s")
         print(f"Expanded nodes  : {expansions}")
-        print(f"Explored nodes  : {expansions}")
+        print(f"Explored nodes  : {explorations}")
+        print(f"Total memory cost : {(explorations * sizeof / 1024):.2f} KB")
         print(
             f"Memory usage    : current={current / 1024:.2f} KB; peak={peak / 1024:.2f} KB")
         print("-" * 60)
