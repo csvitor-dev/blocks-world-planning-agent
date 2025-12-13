@@ -15,6 +15,7 @@ from src.support.factories.algorithm_factory import AlgorithmFactory
 
 class Planning(PlanningContract):
     def __init__(self, strips: StripsNotation, instance_id: str = ''):
+        self.__strips = strips
         self.__map = self.__map_clauses(strips)
         self.__inverve_map = {self.__map[key]: key for key in self.__map}
         self.__actions = self.__resolve_actions(strips.actions)
@@ -49,6 +50,9 @@ class Planning(PlanningContract):
             'goal': self.__goal_state,
         }
 
+    def copy(self) -> PlanningContract:
+        return Planning(self.__strips)
+
     def remap(self, state: Set[int]) -> Set[str]:
         return {self.__inverve_map[fact] for fact in state}
 
@@ -69,6 +73,14 @@ class Planning(PlanningContract):
     def off_report(self) -> None:
         self.__show_report = False
 
+    def set_goal(self, goal: Set[int]) -> None:
+        self.__goal_state = goal
+
+    def set_initial(self, initial: Set[int]) -> None:
+        self.__initial_state = initial
+        self.__state_space = BlocksWorldState(
+            self.__initial_state, self.__actions)
+
     def execute(self, enable_csv: bool = False) -> None:
         if self.__planner is None:
             raise AssertionError('The algorithm is not set')
@@ -81,7 +93,7 @@ class Planning(PlanningContract):
         tracemalloc.stop()
 
         if self.__show_report is False:
-            print(f'Instance: {self.__instance}')
+            print(f'Instance: {self.__instance_id}')
             if result:
                 print(
                     f"Solution Found! ({len(result)} step{'s' if len(result) != 1 else ''}) Time: {elapsed:.6f}s")
@@ -90,17 +102,13 @@ class Planning(PlanningContract):
             return
 
         steps = len(result) if result else 0
-        expansions_val = expansions if expansions is not None else ''
-        explorations_val = explorations if explorations is not None else ''
         elapsed_str = f"{elapsed:.6f}"
-        current_val = current if current is not None else ''
-        peak_val = peak if peak is not None else ''
         algo_name = type(
-            self.__planner).__name__ if self.__planner is not None else ''
+            self.__planner).__name__
 
         if enable_csv:
-            self.__save_result_csv(algo_name, steps, expansions_val,
-                                   explorations_val, elapsed_str, current_val, peak_val)
+            self.__save_result_csv(algo_name, steps, str(expansions),
+                                   str(explorations), elapsed_str, str(current), str(peak))
         self.__report(result, expansions, explorations, elapsed, current, peak)
 
     def __report(self, result: list[str] | None, expansions: int, explorations: int, elapsed: float, current: int, peak: int) -> None:
@@ -129,7 +137,7 @@ class Planning(PlanningContract):
 
         print("=" * 60)
 
-    def __save_result_csv(self, algo_name: str, steps: int, expansions_val, explorations_val, elapsed_str: str, current_val, peak_val) -> None:
+    def __save_result_csv(self, algo_name: str, steps: int, expansions_val: str, explorations_val: str, elapsed_str: str, current_val: str, peak_val: str) -> None:
         csv_path = Path(os.getcwd()) / 'src/analysis/results.csv'
         write_header = not csv_path.exists()
         with csv_path.open('a', newline='', encoding='utf-8') as f:
