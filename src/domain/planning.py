@@ -11,6 +11,7 @@ from src.domain.strips_notation import StripsNotation
 
 class Planning(PlanningContract):
     def __init__(self, strips: StripsNotation):
+        self.__strips = strips
         self.__map = self.__map_clauses(strips)
         self.__actions = self.__resolve_actions(strips.actions)
 
@@ -41,6 +42,9 @@ class Planning(PlanningContract):
             'initial': self.__initial_state,
             'goal': self.__goal_state,
         }
+        
+    def copy(self) -> PlanningContract:
+        return Planning(self.__strips)
 
     def successors(self) -> Generator[BlocksWorldState, None, None]:
         return self.__state_space.successors(self.__actions)
@@ -55,6 +59,14 @@ class Planning(PlanningContract):
 
     def set_algorithm(self, algorithm_key: str) -> None:
         self.__planner = AlgorithmFactory.make(algorithm_key, self)
+
+    def set_goal(self, goal: Set[int]) -> None:
+        self.__goal_state = goal
+
+    def set_initial(self, initial: Set[int]) -> None:
+        self.__initial_state = initial
+        self.__state_space = BlocksWorldState(
+            self.__initial_state, self.__actions)
 
     def execute(self) -> None:
         if self.__planner is None:
