@@ -18,4 +18,4 @@ class LocalSearchAlgorithm(ABC):
     def execute(self) -> tuple[list[str] | None, int, int]: ...
 
     def is_goal_state(self, state: BlocksWorldState) -> bool:
-        return self._goal.issubset(state.current)
+        return state.current == self._goal

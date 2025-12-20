@@ -1,9 +1,13 @@
+from typing import Set
+
 class StripsNotation:
-    def __init__(self, actions: list[str], initial_state: str, goal_state: str) -> None:
-        self.__facts: set[str] = set()
+    def __init__(self, instance_ref: str, actions: list[str], initial_state: str, goal_state: str) -> None:
+        self.instance_ref = instance_ref
+        self.__facts: Set[str] = set()
         self.__actions = self.__create_actions(actions)
         self.__initial_state = self.__split_facts(initial_state)
         self.__goal_state = self.__split_facts(goal_state)
+        self.__atoms = self.__extract_atoms()
     
     @property
     def actions(self) -> dict[str, dict[str, list[str]]]:
@@ -19,6 +23,23 @@ class StripsNotation:
     @property
     def avaliable_facts(self) -> list[str]:
         return list(self.__facts)
+
+    @property
+    def atoms(self) -> list[str]:
+        return list(self.__atoms)
+    
+    def __extract_atoms(self) -> Set[str]:
+        hook: Set[str] = set()
+        
+        for fact in self.__initial_state:
+            partitions = fact.split('_')
+            
+            if partitions[0] in ['clear', 'ontable']:
+                hook.add(partitions[1])
+            elif partitions[0] == 'on':
+                hook.add(partitions[1])
+                hook.add(partitions[2])
+        return hook
 
     def __create_actions(self, raw_actions: list[str]) -> dict[str, dict[str, list[str]]]:
         hook: dict[str, dict[str, list[str]]] = {}

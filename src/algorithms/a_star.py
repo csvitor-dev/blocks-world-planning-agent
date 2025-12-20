@@ -1,12 +1,12 @@
 from src.domain.contracts.local_search_algorithm import LocalSearchAlgorithm
 from src.domain.contracts.planning_contract import PlanningContract
-from src.support.heuristics.a_star import GoalRelativeDistance
+from src.support.heuristics.a_star import CountingIncorrectOverlaps
 
 
 class AStar(LocalSearchAlgorithm):
     def __init__(self, planning: PlanningContract) -> None:
         super().__init__(planning)
-        self.__heuristic = GoalRelativeDistance(planning, self._frontier)
+        self.__heuristic = CountingIncorrectOverlaps(planning, self._frontier)
 
     def execute(self) -> tuple[list[str] | None, int, int]:
         while self.__heuristic.is_avaliable():

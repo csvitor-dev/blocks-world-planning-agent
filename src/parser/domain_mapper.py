@@ -14,4 +14,4 @@ class DomainMapper:
 
         if len(actions_set) % 3 != 0:
             raise ValueError
-        return StripsNotation(actions_set, states[0], states[1])
+        return StripsNotation(ref, actions_set, states[0], states[1])
