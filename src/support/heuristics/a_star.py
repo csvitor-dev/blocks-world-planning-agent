@@ -1,5 +1,5 @@
-from collections import deque
 from typing import Set
+from queue import PriorityQueue
 from src.domain.blocks_world_state import BlocksWorldState
 from src.domain.contracts.planning_contract import PlanningContract
 
@@ -7,42 +7,33 @@ class CountingIncorrectOverlaps:
     def __init__(
         self,
         planning: PlanningContract,
-        data_structure: deque[BlocksWorldState],
+        initial_block: BlocksWorldState,
     ) -> None:
         self.__planning = planning
         self.__goal_overlaps = self.__extract_overlaps(
             self.__planning.states['goal'])
-        self.__priority_queue_cost_based = self.__prepare_priority_queue(
-            data_structure)
+        self.__priority_queue_cost_based: PriorityQueue[tuple[int, BlocksWorldState]] = PriorityQueue()
+        self.__priority_queue_cost_based.put((0, initial_block))
 
     def is_avaliable(self) -> bool:
-        return len(self.__priority_queue_cost_based) != 0
+        return self.__priority_queue_cost_based.empty() is False
 
     def pick(self) -> BlocksWorldState:
-        return self.__priority_queue_cost_based.popleft()[1]
+        return self.__priority_queue_cost_based.get()[1]
 
     def evaluate_cost(self, state: BlocksWorldState) -> None:
-        cost = state.g + min(self.h1(state), self.h2(state))
-        self.__push(cost, state)
+        estimate_cost = state.g + min(self.h1(state), self.h2(state))
+        self.push(estimate_cost, state)
 
     def h1(self, state: BlocksWorldState) -> int:
         current_overlaps = self.__extract_overlaps(state.current)
-        return len(current_overlaps - self.__goal_overlaps)
+        return min(len(current_overlaps - self.__goal_overlaps), len(self.__goal_overlaps - current_overlaps))
 
     def h2(self, state: BlocksWorldState):
         return sum(1 if fact not in state.current else -1 for fact in self.__planning.states['goal'])
 
-    def __push(self, cost: int, state: BlocksWorldState) -> None:
-        for index in range(len(self.__priority_queue_cost_based)):
-            if cost < self.__priority_queue_cost_based[index][0]:
-                self.__priority_queue_cost_based.insert(index, (cost, state))
-                return
-        self.__priority_queue_cost_based.append((cost, state))
-
-    def __prepare_priority_queue(self, data_structure: deque[BlocksWorldState]) -> deque[tuple[int, BlocksWorldState]]:
-        new_structure: deque[tuple[int, BlocksWorldState]] = deque()
-        new_structure.append((0, data_structure[0]))
-        return new_structure
+    def push(self, estimative: int, state: BlocksWorldState) -> None:
+        self.__priority_queue_cost_based.put((estimative, state))
 
     def __extract_overlaps(self, state: Set[int]) -> Set[str]:
         remap_state = self.__planning.remap(state)

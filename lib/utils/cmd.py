@@ -5,19 +5,26 @@ from lib.constants.regex import UNIQUE_VALUE_CONSTRAINT
 
 def pluck_flags_from_cmd_args(search_for: list[str]) -> dict[str, Any]:
     args = __map_args(sys.argv[1:])
-    
+
     if len(args) == 0:
         raise ValueError('The flags need to be provided.')
-    return {target: args[target] for target in search_for if target in args}
+    return {target: args[target] if target in args else False for target in search_for}
 
 
 def __map_args(raw_args: list[str]) -> dict[str, Any]:
     filtering = filter(lambda arg: arg.isdigit()
-                       is False and '=' in arg, raw_args)
+                       is False and '--' in arg, raw_args)
     mapping = list(map(lambda arg: arg.replace(
         '--', '').split('='), filtering))
+    output_mapper: dict[str, Any] = {}
 
-    return {flag: value if flag != 'instance' else __to_list(value) for (flag, value) in mapping}
+    for parts in mapping:
+        if len(parts) == 1:
+            output_mapper[parts[0]] = True
+        else:
+            output_mapper[parts[0]] = parts[1] if parts[0] != 'instance' else __to_list(
+                parts[1])
+    return output_mapper
 
 
 def __to_list(arg: str) -> list[str]:

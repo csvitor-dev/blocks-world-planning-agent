@@ -15,15 +15,17 @@ class BlocksWorldState:
 
         self.current = set(current_state)
         self.key = str(sorted(self.current))
-        self.avaliable_actions = self.__filter_avaliable_actions(actions)
+        self.actions = actions
         self.identifier = name
         self.parent = parent
         self.g = real_cost
+        self.h = 0
+        self.f = self.g
 
     def successors(self, actions: dict[str, dict[str, Set[int]]]) -> Generator['BlocksWorldState', None, None]:
-        for name, action in self.avaliable_actions.items():
-            new_state = self.__expand(name, action, actions)
-            yield new_state
+        for name, action in self.actions.items():
+            if action['pre'].issubset(self.current):
+                yield self.__expand(name, action, actions)
 
     def __expand(self, action_name: str, action: dict[str, Set[int]], actions: dict[str, dict[str, Set[int]]]) -> BlocksWorldState:
         transition_state = self.current - action['pre']
@@ -31,12 +33,6 @@ class BlocksWorldState:
             transition_state, action['post'])
 
         return BlocksWorldState(new_state, actions, action_name, parent=self, real_cost=self.g + 1)
-
-    def __filter_avaliable_actions(self, actions: dict[str, dict[str, Set[int]]]) -> dict[str, dict[str, Set[int]]]:
-        return {
-            name: condition for name, condition in actions.items()
-            if condition['pre'].issubset(self.current)
-        }
 
     def __resolve_consistent_state(self, transition_state: Set[int], post_state: Set[int]) -> Set[int]:
         only_positive_facts = {fact for fact in post_state if fact > 0}
@@ -50,6 +46,12 @@ class BlocksWorldState:
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, BlocksWorldState) and self.key == other.key
+    
+    def __lt__(self, other: BlocksWorldState) -> bool:
+        return self.g < other.g
+    
+    def __gt__(self, other: BlocksWorldState) -> bool:
+        return self.g > other.g
 
     def __repr__(self) -> str:
         return f'State({self.current})'

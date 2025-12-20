@@ -23,6 +23,7 @@ class Planning(PlanningContract):
             self.__initial_state, self.__actions)
 
         self.__planner: LocalSearchAlgorithm | None = None
+        self.__show_report = True
 
     @property
     def current_state(self) -> BlocksWorldState:
@@ -59,6 +60,9 @@ class Planning(PlanningContract):
 
     def set_algorithm(self, algorithm_key: str) -> None:
         self.__planner = AlgorithmFactory.make(algorithm_key, self)
+    
+    def off_report(self) -> None:
+        self.__show_report = False
 
     def execute(self) -> None:
         if self.__planner is None:
@@ -70,11 +74,20 @@ class Planning(PlanningContract):
         elapsed = time.perf_counter() - start
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
+        
+        if self.__show_report is False:
+            print(f'Instance: {self.__instance}')
+            if result:
+                print(
+                    f"Solution Found! ({len(result)} step{'s' if len(result) != 1 else ''}) Time: {elapsed:.6f}s")
+            else:
+                print(f"No solution found. Time: {elapsed:.6f}s")
+            return
 
-        self.__display_result(result, expansions,
+        self.__report(result, expansions,
                               explorations, elapsed, current, peak)
 
-    def __display_result(self, result: list[str] | None, expansions: int, explorations: int, elapsed: float, current: int, peak: int) -> None:
+    def __report(self, result: list[str] | None, expansions: int, explorations: int, elapsed: float, current: int, peak: int) -> None:
         algo_name = type(
             self.__planner).__name__ if self.__planner is not None else None
         sizeof = sys.getsizeof(self.current_state)
