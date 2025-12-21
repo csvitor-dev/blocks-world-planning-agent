@@ -132,6 +132,9 @@ class Planning(PlanningContract):
         if result:
             print(
                 f"Solution found ({len(result)} step{'s' if len(result) != 1 else ''})")
+            
+            for step in result:
+                print(step)
         else:
             print("No solution found")
 

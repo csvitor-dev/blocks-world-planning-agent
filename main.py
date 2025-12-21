@@ -15,7 +15,7 @@ from src.domain.planning import Planning
 
 def execute(id: str, alg: str, dont_show_output: bool) -> None:
     instance = DomainMapper.get_instance(id)
-    planning = Planning(instance)
+    planning = Planning(instance, id)
 
     if dont_show_output:
         planning.off_report()
