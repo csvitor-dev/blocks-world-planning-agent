@@ -1,17 +1,20 @@
-from typing import Generator, Set
+import csv
+import os
+import sys
 import time
 import tracemalloc
-import sys
-from src.support.factories.algorithm_factory import AlgorithmFactory
+from pathlib import Path
+from typing import Generator, Set
+
+from src.domain.blocks_world_state import BlocksWorldState
 from src.domain.contracts.local_search_algorithm import LocalSearchAlgorithm
 from src.domain.contracts.planning_contract import PlanningContract
-from src.domain.blocks_world_state import BlocksWorldState
 from src.domain.strips_notation import StripsNotation
+from src.support.factories.algorithm_factory import AlgorithmFactory
 
 
 class Planning(PlanningContract):
-    def __init__(self, strips: StripsNotation):
-        self.__instance = strips.instance_ref
+    def __init__(self, strips: StripsNotation, instance_id: str = ''):
         self.__map = self.__map_clauses(strips)
         self.__inverve_map = {self.__map[key]: key for key in self.__map}
         self.__actions = self.__resolve_actions(strips.actions)
@@ -24,6 +27,8 @@ class Planning(PlanningContract):
 
         self.__planner: LocalSearchAlgorithm | None = None
         self.__show_report = True
+
+        self.__instance_id = instance_id
 
     @property
     def current_state(self) -> BlocksWorldState:
@@ -60,11 +65,11 @@ class Planning(PlanningContract):
 
     def set_algorithm(self, algorithm_key: str) -> None:
         self.__planner = AlgorithmFactory.make(algorithm_key, self)
-    
+
     def off_report(self) -> None:
         self.__show_report = False
 
-    def execute(self) -> None:
+    def execute(self, enable_csv: bool = False) -> None:
         if self.__planner is None:
             raise AssertionError('The algorithm is not set')
 
@@ -74,7 +79,7 @@ class Planning(PlanningContract):
         elapsed = time.perf_counter() - start
         current, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
-        
+
         if self.__show_report is False:
             print(f'Instance: {self.__instance}')
             if result:
@@ -84,8 +89,19 @@ class Planning(PlanningContract):
                 print(f"No solution found. Time: {elapsed:.6f}s")
             return
 
-        self.__report(result, expansions,
-                              explorations, elapsed, current, peak)
+        steps = len(result) if result else 0
+        expansions_val = expansions if expansions is not None else ''
+        explorations_val = explorations if explorations is not None else ''
+        elapsed_str = f"{elapsed:.6f}"
+        current_val = current if current is not None else ''
+        peak_val = peak if peak is not None else ''
+        algo_name = type(
+            self.__planner).__name__ if self.__planner is not None else ''
+
+        if enable_csv:
+            self.__save_result_csv(algo_name, steps, expansions_val,
+                                   explorations_val, elapsed_str, current_val, peak_val)
+        self.__report(result, expansions, explorations, elapsed, current, peak)
 
     def __report(self, result: list[str] | None, expansions: int, explorations: int, elapsed: float, current: int, peak: int) -> None:
         algo_name = type(
@@ -96,7 +112,7 @@ class Planning(PlanningContract):
         print("Execution summary".center(60))
         print("=" * 60)
         print(f"Algorithm         : {algo_name}")
-        print(f"Instance          : {self.__instance}")
+        print(f"Instance          : {self.__instance_id}")
         print(f"Time elapsed      : {elapsed:.6f} s")
         print(f"Expanded nodes    : {expansions}")
         print(f"Explored nodes    : {explorations}")
@@ -107,13 +123,22 @@ class Planning(PlanningContract):
 
         if result:
             print(
-                f"Solution ({len(result)} step{'s' if len(result) != 1 else ''}):")
-            for i, step in enumerate(result, start=1):
-                print(f"  {i:2d}. {step}")
+                f"Solution found ({len(result)} step{'s' if len(result) != 1 else ''})")
         else:
             print("No solution found")
 
         print("=" * 60)
+
+    def __save_result_csv(self, algo_name: str, steps: int, expansions_val, explorations_val, elapsed_str: str, current_val, peak_val) -> None:
+        csv_path = Path(os.getcwd()) / 'src/analysis/results.csv'
+        write_header = not csv_path.exists()
+        with csv_path.open('a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            if write_header:
+                writer.writerow(['instance', 'algorithm', 'steps', 'expansions',
+                                'explorations', 'elapsed', 'current', 'peak'])
+            writer.writerow([self.__instance_id, algo_name, steps, expansions_val,
+                            explorations_val, elapsed_str, current_val, peak_val])
 
     def __map_clauses(self, strips: StripsNotation) -> dict[str, int]:
         action_hook: dict[str, int] = {}
