@@ -218,3 +218,5 @@ __marimo__/
 .streamlit/secrets.toml
 
 results.csv
+plot_nodes_expanded_memory.png
+plot1_time_per_instance_per_algorithm.png
