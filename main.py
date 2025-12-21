@@ -6,7 +6,7 @@ Equipe:
     - Francisco Rodrigo de Santiago Pinheiro (554394) [ES]
     - Vitor Costa de Sousa (536678) [ES]
 """
-
+from __future__ import annotations
 import time
 from lib.utils import cmd
 from src.parser.domain_mapper import DomainMapper
@@ -15,7 +15,7 @@ from src.domain.planning import Planning
 
 def execute(id: str, alg: str, dont_show_output: bool) -> None:
     instance = DomainMapper.get_instance(id)
-    planning = Planning(instance)
+    planning = Planning(instance, id)
 
     if dont_show_output:
         planning.off_report()
