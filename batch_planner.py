@@ -38,7 +38,7 @@ def app() -> None:
         # '15-0',
         # '17-0',
     ]
-    algorithms = ['BFS', 'DLS', 'IDS', 'A*']
+    algorithms = ['BFS', 'DLS', 'IDS', 'A*', 'BiA*']
 
     for instance_id in instances:
         for alg in algorithms:
