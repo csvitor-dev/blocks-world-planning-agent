@@ -30,6 +30,7 @@ class Planning(PlanningContract):
         self.__show_report = True
 
         self.__instance_id = instance_id
+        self.__sizeof = sys.getsizeof(self.current_state)
 
     @property
     def current_state(self) -> BlocksWorldState:
@@ -108,13 +109,12 @@ class Planning(PlanningContract):
 
         if enable_csv:
             self.__save_result_csv(algo_name, steps, str(expansions),
-                                   str(explorations), elapsed_str, str(current), str(peak))
+                                   str(explorations), elapsed_str, str(current))
         self.__report(result, expansions, explorations, elapsed, current, peak)
 
     def __report(self, result: list[str] | None, expansions: int, explorations: int, elapsed: float, current: int, peak: int) -> None:
         algo_name = type(
             self.__planner).__name__ if self.__planner is not None else None
-        sizeof = sys.getsizeof(self.current_state)
 
         print("=" * 60)
         print("Execution summary".center(60))
@@ -124,7 +124,8 @@ class Planning(PlanningContract):
         print(f"Time elapsed      : {elapsed:.6f} s")
         print(f"Expanded nodes    : {expansions}")
         print(f"Explored nodes    : {explorations}")
-        print(f"Total memory cost : {(explorations * sizeof / 1024):.2f} KB")
+        print(
+            f"Total memory cost : {(explorations * self.__sizeof / 1024):.2f} KB")
         print(
             f"Memory usage      : current={current / 1024:.2f} KB; peak={peak / 1024:.2f} KB")
         print("-" * 60)
@@ -132,7 +133,7 @@ class Planning(PlanningContract):
         if result:
             print(
                 f"Solution found ({len(result)} step{'s' if len(result) != 1 else ''})")
-            
+
             for step in result:
                 print(step)
         else:
@@ -140,16 +141,16 @@ class Planning(PlanningContract):
 
         print("=" * 60)
 
-    def __save_result_csv(self, algo_name: str, steps: int, expansions_val: str, explorations_val: str, elapsed_str: str, current_val: str, peak_val: str) -> None:
+    def __save_result_csv(self, algo_name: str, steps: int, expansions_val: str, explorations_val: str, elapsed_str: str, current_val: str) -> None:
         csv_path = Path(os.getcwd()) / 'src/analysis/results.csv'
         write_header = not csv_path.exists()
         with csv_path.open('a', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             if write_header:
                 writer.writerow(['instance', 'algorithm', 'steps', 'expansions',
-                                'explorations', 'elapsed', 'current', 'peak'])
+                                'explorations', 'elapsed', 'current', 'total_cost'])
             writer.writerow([self.__instance_id, algo_name, steps, expansions_val,
-                            explorations_val, elapsed_str, current_val, peak_val])
+                            explorations_val, elapsed_str, current_val, (int(explorations_val) * self.__sizeof / 1024)])
 
     def __map_clauses(self, strips: StripsNotation) -> dict[str, int]:
         action_hook: dict[str, int] = {}
