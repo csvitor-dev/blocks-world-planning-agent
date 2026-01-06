@@ -56,15 +56,16 @@ class BiDirectionalAStar(LocalSearchAlgorithm):
         return self.__explored_map_end[key] if coming_to == 'goal' else self.__explored_map_start[key]
 
     def build_path(self, meet: BlocksWorldState, coming_to: str = 'initial') -> list[str]:
-        left: deque[str] = deque()
         node = meet
+        left: deque[str] = deque()
+
         while node.parent is not None:
             left.insert(0, node.identifier)
             node = node.parent
-
         right: deque[str] = deque()
         node = self.__explored_map_start[meet.key] if coming_to == 'goal' else self.__explored_map_end[meet.key]
+
         while node.parent is not None:
-            right.append(node.identifier)
+            right.append(self._planning.revert_action(node.identifier))
             node = node.parent
         return list(right + left) if coming_to == 'goal' else list(left + right)

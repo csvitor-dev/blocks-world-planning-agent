@@ -81,6 +81,14 @@ class Planning(PlanningContract):
         self.__initial_state = initial
         self.__state_space = BlocksWorldState(
             self.__initial_state, self.__actions)
+        
+    def revert_action(self, action: str) -> str:
+        target_conditions = self.actions[action]
+        
+        for action_name, conditions in self.actions.items():
+            if conditions['pre'].issubset(target_conditions['post']) and target_conditions['pre'].issubset(conditions['post']):
+                return action_name
+        return action
 
     def execute(self, enable_csv: bool = False) -> None:
         if self.__planner is None:
